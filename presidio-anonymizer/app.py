@@ -10,7 +10,6 @@ from pathlib import Path
 from flask import Flask, Response, jsonify, request
 from presidio_anonymizer import AnonymizerEngine, DeanonymizeEngine
 from presidio_anonymizer.entities import InvalidParamError
-from presidio_anonymizer.operators import GenZ
 from presidio_anonymizer.services.app_entities_convertor import AppEntitiesConvertor
 from werkzeug.exceptions import BadRequest, HTTPException
 
@@ -81,7 +80,7 @@ class Server:
             return Response(responseb, mimetype='application/json')
         @self.app.route("/genz", methods=["GET"])
         def genz():
-            """Return genz anonymization."""
+            """Return genz anonymization re."""
             responsec = {
                 "text":"Please contact Emily Carter at 734-555-9284 if you "
                 "have questions about the workshop registration.",
