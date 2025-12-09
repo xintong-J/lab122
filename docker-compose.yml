@@ -1,0 +1,11 @@
+services:
+  presidio-anonymizer:
+    image: ${REGISTRY_NAME}${IMAGE_PREFIX}presidio-anonymizer${TAG}
+    build:
+      context: ./presidio-anonymizer
+      cache_from:
+        - type=registry,ref=${REGISTRY_NAME}${IMAGE_PREFIX}presidio-anonymizer:latest
+    environment:
+      - PORT=5001
+    ports:
+      - "5001:5001"
