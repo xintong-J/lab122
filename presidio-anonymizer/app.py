@@ -1,13 +1,16 @@
 """REST API server for anonymizer."""
 
+import json
 import logging
 import os
+from collections import OrderedDict
 from logging.config import fileConfig
 from pathlib import Path
 
 from flask import Flask, Response, jsonify, request
 from presidio_anonymizer import AnonymizerEngine, DeanonymizeEngine
 from presidio_anonymizer.entities import InvalidParamError
+from presidio_anonymizer.operators import GenZ
 from presidio_anonymizer.services.app_entities_convertor import AppEntitiesConvertor
 from werkzeug.exceptions import BadRequest, HTTPException
 
@@ -66,7 +69,51 @@ class Server:
                 operators=anonymizers_config,
             )
             return Response(anoymizer_result.to_json(), mimetype="application/json")
+        @self.app.route("/genz-preview", methods=["GET"])
+        def genz_preview():
+            """Return genz preview anonymization."""
+            responsea = OrderedDict([
+                ("example","Call Emily at 577-988-1234"),
+                ("example output","Call GOAT at vibe check"),
+                ("description","Example output of genz anonymizer.")
+            ])
+            responseb = json.dumps(responsea)
+            return Response(responseb, mimetype='application/json')
+        @self.app.route("/genz", methods=["GET"])
+        def genz():
+            """Return genz anonymization."""
+            gz = GenZ()
+            p_r = gz.operate(params={"entity_type": "PERSON"})
+            ph_r = gz.operate(params={"entity_type": "PHONE_NUMBER"})
+            text_e = f"Please contact {p_r} at {ph_r} if you have questions "\
+                "about the workshop registration."
+            p_s = 15
+            p_e = p_s + len(p_r)
+            ph_s = p_e + 4
+            ph_e = ph_s + len(ph_r)
 
+            responsec = {
+                "text": text_e,
+                "items": [
+                    {
+                        "start": ph_s,
+                        "end": ph_e,
+                        "entity_type": "PHONE NUMBER",
+                        "text": ph_r,
+                        "operator": "genz"
+                        },
+                    {
+                        "start": p_s,
+                        "end": p_e,
+                        "entity_type": "PERSON",
+                        "text": p_r,
+                        "operator": "genz"
+                    }
+                ]
+            }
+            responsec["items"].sort(key=lambda x: x["start"])
+            responsed = json.dumps(responsec)
+            return Response(responsed, mimetype='application/json')
         @self.app.route("/deanonymize", methods=["POST"])
         def deanonymize() -> Response:
             content = request.get_json()

@@ -134,6 +134,7 @@ jobs:
           python -m venv env
           source env/bin/activate
           python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Wait for services to be ready
         run: sleep 60
@@ -142,6 +143,7 @@ jobs:
         working-directory: e2e-tests
         run: |
           source env/bin/activate
+          pytest
 
       - name: Stop Docker containers
         if: always()
