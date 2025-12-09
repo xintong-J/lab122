@@ -48,3 +48,13 @@ def __get_multipart_form_data(file):
             "image": (file.name, file, "multipart/form-data"),
         }
     return multipart_form_data
+def genz(data: str) :
+    data_dict = json.loads(data)
+    for result in data_dict.get("analyzer_results", []):
+        result["operator"] = "genz"
+    response = requests.post(
+        f"{ANONYMIZER_BASE_URL}/anonymize", 
+        data=json.dumps(data_dict), 
+        headers=DEFAULT_HEADERS
+    )
+    return response.status_code, response.content
