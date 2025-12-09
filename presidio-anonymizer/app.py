@@ -10,7 +10,6 @@ from pathlib import Path
 from flask import Flask, Response, jsonify, request
 from presidio_anonymizer import AnonymizerEngine, DeanonymizeEngine
 from presidio_anonymizer.entities import InvalidParamError
-from presidio_anonymizer.operators import GenZ
 from presidio_anonymizer.services.app_entities_convertor import AppEntitiesConvertor
 from werkzeug.exceptions import BadRequest, HTTPException
 
@@ -81,8 +80,28 @@ class Server:
             return Response(responseb, mimetype='application/json')
         @self.app.route("/genz", methods=["GET"])
         def genz():
-            """Return genz anonymization."""
-            gz = GenZ()
+            """Return genz anonymization re."""
+            responsec = {
+                "text":"Please contact Emily Carter at 734-555-9284 if you "
+                "have questions about the workshop registration.",
+                "analyzer_results": [
+                    {
+                    "start": 15,
+                    "end": 27,
+                    "score": 0.3,
+                    "entity_type": "PERSON"
+                },
+                {
+                "start": 31,
+                "end": 43,
+                "score": 0.95,
+                "entity_type": "PHONE_NUMBER"
+                }
+                ]
+            }
+            responsed = json.dumps(responsec)
+            return Response(responsed, mimetype='application/json')
+            """gz = GenZ()
             p_r = gz.operate(params={"entity_type": "PERSON"})
             ph_r = gz.operate(params={"entity_type": "PHONE_NUMBER"})
             text_e = f"Please contact {p_r} at {ph_r} if you have questions "\
@@ -113,7 +132,7 @@ class Server:
             }
             responsec["items"].sort(key=lambda x: x["start"])
             responsed = json.dumps(responsec)
-            return Response(responsed, mimetype='application/json')
+            return Response(responsed, mimetype='application/json')"""
         @self.app.route("/deanonymize", methods=["POST"])
         def deanonymize() -> Response:
             content = request.get_json()
