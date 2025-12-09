@@ -82,17 +82,6 @@ class Server:
         @self.app.route("/genz", methods=["GET"])
         def genz():
             """Return genz anonymization."""
-            GEN_REQ = """{"text": "Please contact Emily Carter at 734-555-9284 if "
-                "you have questions about the workshop registration.",
-                "analyzer_results": [{"start": 15,
-                "end": 27,
-                "score": 0.3,
-                "entity_type": "PERSON"},
-                {"start": 31,
-                "end": 43,
-                "score": 0.95,
-                "entity_type": "PHONE_NUMBER"}]
-                }"""
             gz = GenZ()
             p_r = gz.operate(params={"entity_type": "PERSON"})
             ph_r = gz.operate(params={"entity_type": "PHONE_NUMBER"})
