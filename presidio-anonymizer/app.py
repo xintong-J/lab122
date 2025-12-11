@@ -10,6 +10,7 @@ from pathlib import Path
 from flask import Flask, Response, jsonify, request
 from presidio_anonymizer import AnonymizerEngine, DeanonymizeEngine
 from presidio_anonymizer.entities import InvalidParamError
+from presidio_anonymizer.operators import GenZ
 from presidio_anonymizer.services.app_entities_convertor import AppEntitiesConvertor
 from werkzeug.exceptions import BadRequest, HTTPException
 
@@ -78,61 +79,41 @@ class Server:
             ])
             responseb = json.dumps(responsea)
             return Response(responseb, mimetype='application/json')
-        @self.app.route("/genz", methods=["GET"])
+        @self.app.route("/genz", methods=["POST"])
         def genz():
             """Return genz anonymization re."""
+            data = request.get_json()
+            text = data["text"]
+            analyzer_results = data.get("analyzer_results", [])
+            gz = GenZ()
+            sorted_results = sorted(analyzer_results,
+                                    key=lambda x: x["start"], reverse=True)
+            anonymized_text = text
+            items = []
+            for result in sorted_results:
+                entity_type = result["entity_type"]
+                start = result["start"]
+                end = result["end"]
+                replacement = gz.operate(params={"entity_type": entity_type})
+                if replacement:
+                    anonymized_text = anonymized_text[:start] + replacement +\
+                    anonymized_text[end:]
+                    replacement_start = start
+                    replacement_end = start + len(replacement)
+                    items.append({
+                        "start": replacement_start,
+                        "end": replacement_end,
+                        "entity_type": entity_type,
+                        "text": replacement,
+                        "operator": "genz"
+                    })
+            items = sorted(items, key=lambda x: x["start"])
             responsec = {
-                "text":"Please contact Emily Carter at 734-555-9284 if you "
-                "have questions about the workshop registration.",
-                "analyzer_results": [
-                    {
-                    "start": 15,
-                    "end": 27,
-                    "score": 0.3,
-                    "entity_type": "PERSON"
-                },
-                {
-                "start": 31,
-                "end": 43,
-                "score": 0.95,
-                "entity_type": "PHONE_NUMBER"
-                }
-                ]
+                "text": anonymized_text,
+                "items": items
             }
             responsed = json.dumps(responsec)
             return Response(responsed, mimetype='application/json')
-            """gz = GenZ()
-            p_r = gz.operate(params={"entity_type": "PERSON"})
-            ph_r = gz.operate(params={"entity_type": "PHONE_NUMBER"})
-            text_e = f"Please contact {p_r} at {ph_r} if you have questions "\
-                "about the workshop registration."
-            p_s = 15
-            p_e = p_s + len(p_r)
-            ph_s = p_e + 4
-            ph_e = ph_s + len(ph_r)
-
-            responsec = {
-                "text": text_e,
-                "items": [
-                    {
-                        "start": ph_s,
-                        "end": ph_e,
-                        "entity_type": "PHONE NUMBER",
-                        "text": ph_r,
-                        "operator": "genz"
-                        },
-                    {
-                        "start": p_s,
-                        "end": p_e,
-                        "entity_type": "PERSON",
-                        "text": p_r,
-                        "operator": "genz"
-                    }
-                ]
-            }
-            responsec["items"].sort(key=lambda x: x["start"])
-            responsed = json.dumps(responsec)
-            return Response(responsed, mimetype='application/json')"""
         @self.app.route("/deanonymize", methods=["POST"])
         def deanonymize() -> Response:
             content = request.get_json()
