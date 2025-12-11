@@ -96,7 +96,7 @@ class Server:
                 end = result["end"]
                 replacement = gz.operate(params={"entity_type": entity_type})
                 if replacement:
-                    anonymized_text = anonymized_text[:start] + replacement +
+                    anonymized_text = anonymized_text[:start] + replacement +\
                     anonymized_text[end:]
                     replacement_start = start
                     replacement_end = start + len(replacement)
