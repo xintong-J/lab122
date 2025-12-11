@@ -86,7 +86,8 @@ class Server:
             text = data["text"]
             analyzer_results = data.get("analyzer_results", [])
             gz = GenZ()
-            sorted_results = sorted(analyzer_results, key=lambda x: x["start"], reverse=True)
+            sorted_results = sorted(analyzer_results, 
+                                    key=lambda x: x["start"], reverse=True)
             anonymized_text = text
             items = []
             for result in sorted_results:
@@ -95,7 +96,8 @@ class Server:
                 end = result["end"]
                 replacement = gz.operate(params={"entity_type": entity_type})
                 if replacement:
-                    anonymized_text = anonymized_text[:start] + replacement + anonymized_text[end:]
+                    anonymized_text = anonymized_text[:start] + replacement + 
+                    anonymized_text[end:]
                     replacement_start = start
                     replacement_end = start + len(replacement)
                     items.append({
@@ -106,7 +108,6 @@ class Server:
                         "operator": "genz"
                     })
             items = sorted(items, key=lambda x: x["start"])
-        
             responsec = {
                 "text": anonymized_text,
                 "items": items
